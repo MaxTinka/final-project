@@ -1,14 +1,18 @@
+//Dependencies
 require('dotenv').config();
 const express = require('express');
 const { connectDB } = require('./db/connect');
 const app = express();
-const indexRouter = require('./routes/index');
-const swaggerUi = require('swagger-ui-express');
-const swaggerDocument = require('./swagger-output.json');
 const passport = require('passport');
 const session = require('express-session');
 const GitHubStrategy = require('passport-github2').Strategy;
 const cors = require('cors');
+//From other files
+const Patron = require('./models/Patron');
+const indexRouter = require('./routes/index');
+const swaggerUi = require('swagger-ui-express');
+const swaggerDocument = require('./swagger-output.json');
+
 
 //Get port from .env file
 const port = process.env.PORT || 3000;
@@ -65,11 +69,13 @@ passport.use(new GitHubStrategy({
     }
 ));
 
+//Store login info
 passport.serializeUser((user, done) => {
     done(null, user._id);
 });
 
-passport.deserializeUser((user, done) => {
+//Restore user on requests
+passport.deserializeUser((id, done) => {
     try {
         const user = await Patron.findById(id);
         done(null, user);
@@ -81,15 +87,16 @@ passport.deserializeUser((user, done) => {
 app.get('/',
     /* #swagger.ignore = true */
     (req, res) => {
-    res.send(req.session.user //condition
-        ? `Logged in as ${req.session.user.username || req.session.user.login}` //if true
+    res.send(req.user //condition
+        ? `Logged in as ${req.user.username || req.user.login}` //if true
         : "Logged Out") //if false
 });
 
 app.get('/github/callback',
     /* #swagger.ignore = true */
     passport.authenticate('github', {
-    failureRedirect: '/api-docs', session: false}),
+        failureRedirect: '/api-docs'
+    }),
     (req, res) => {
         req.session.user = req.user;
         res.redirect('/');
