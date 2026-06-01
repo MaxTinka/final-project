@@ -14,7 +14,6 @@ const getAllBooks = async (req, res) => {
     }
 };
 
-
 //Function to retrieve data for one book
 const getSingleBook = async (req, res) => {
     try {
@@ -93,6 +92,7 @@ const deleteBook = async (req, res) => {
     }
 };
 
+//Export
 module.exports = {
     getAllBooks,
     getSingleBook,
