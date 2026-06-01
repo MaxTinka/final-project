@@ -39,18 +39,43 @@ passport.use(new GitHubStrategy({
     clientSecret: process.env.GITHUB_CLIENT_SECRET,
     callbackURL: process.env.CALLBACK_URL
 },
-    function (accessToken, refreshTOekn, profile, done) {
-        //User.findOrCreate({ githubId: profile.id }, function (err, user) {
-        return done(null, profile);
-        //});
+    async (accessToken, refreshToken, profile, done) => {
+        try {
+            //Look for existing user
+            let user = await Patron.findOne({
+                provider: 'github',
+                providerId: profile.id
+            });
+
+            //Create if not found--this is where it's saved to MongoDB patron collection
+            if (!user) {
+                user = await Patron.create({
+                    provider: 'github',
+                    providerId: profile.id,
+                    username: profile.username,
+                    email: profile.emails?.[0]?.value || null //Github may not have email so use null if not available
+                })
+            }
+
+            //Return database user
+            return done(null, user);
+        } catch (err) {
+            return done(err, null);
+        }
     }
 ));
 
 passport.serializeUser((user, done) => {
-    done(null, user);
+    done(null, user._id);
 });
+
 passport.deserializeUser((user, done) => {
-    done(null, user);
+    try {
+        const user = await Patron.findById(id);
+        done(null, user);
+    } catch (err) {
+        done(err, null);
+   }
 });
 
 app.get('/',
