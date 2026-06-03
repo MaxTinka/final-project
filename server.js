@@ -75,7 +75,7 @@ passport.serializeUser((user, done) => {
 });
 
 //Restore user on requests
-passport.deserializeUser((id, done) => {
+passport.deserializeUser(async (id, done) => {  // Add 'async' here
     try {
         const user = await Patron.findById(id);
         done(null, user);
@@ -83,7 +83,6 @@ passport.deserializeUser((id, done) => {
         done(err, null);
    }
 });
-
 app.get('/',
     /* #swagger.ignore = true */
     (req, res) => {

@@ -1,36 +1,41 @@
 const express = require("express");
 const router = express.Router();
 const passport = require('passport');
+
+// Only use routes that exist and work
 const bookRouter = require('./bookRoutes');
-const patronRouter = require('./patronRoutes');
-const locationRouter = require('./locationRoutes');
-const copyRouter = require('./copyRoutes');
 
-//Routes for collections
+// Comment out routes that have issues or are empty
+// const patronRouter = require('./patronRoutes');
+// const locationRouter = require('./locationRoutes');
+// const copyRouter = require('./copyRoutes');
+
+// Routes for collections
 router.use('/book', bookRouter);
-router.use('/patron', patronRouter);
-router.use('/location', locationRouter);
-router.use('/copy', copyRouter);
+// router.use('/patrons', patronRouter);
+// router.use('/locations', locationRouter);
+// router.use('/copies', copyRouter);
 
-//Login Route
+// Login Route
 router.get('/login',
     /* #swagger.ignore = true */
     passport.authenticate('github')
 );
 
-//Logout Route
+// Logout Route
 router.get('/logout',
     /* #swagger.ignore = true */
     function (req, res, next) {
-    req.logout(function (err) {
-        if (err) {
-            return next(err);
-        }
-        req.session.destroy(() => { //we are manually storing the user in req.session.user, so even if passport logs out our session still has the user name saved unless this line is included.
-            res.redirect('/');
-        });        
-    });
-});
+        req.logout(function (err) {
+            if (err) {
+                return next(err);
+            }
+            req.session.destroy(() => {
+                res.redirect('/');
+            });
+        });
+    }
+);
 
-//Export
+// Export
 module.exports = router;
